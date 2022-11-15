@@ -1,4 +1,5 @@
 # Kareem Mohamed Morsy Ismail, ID: 20190386, Group: CS-S3, Program: CS
+# David Emad Philip Ata-Allah, ID: 20190191, Group: CS-S3, Program: CS
 
 import random
 
@@ -44,9 +45,11 @@ def selectParent(population, fitness):
 
 
 def crossover(parent1, parent2):
+    # Crossover only if random number is less than crossover rate
     if random.random() > CROSSOVER_RATE:
         return parent1, parent2
 
+    # 2-point crossover
     r1 = random.randint(0, len(parent1) - 1)
     r2 = random.randint(0, len(parent2) - 1)
     if r1 > r2:
@@ -61,6 +64,7 @@ def crossover(parent1, parent2):
 def mutate(individual, t):
     for i in range(len(individual)):
         if random.random() < MUTATION_RATE:
+            # Non-uniform mutation
             delta_lower = individual[i] - LOWER_BOUND
             delta_upper = UPPER_BOUND - individual[i]
 
@@ -118,9 +122,9 @@ def doWork(d, data):
             child1 = mutate(child1, t)
             child2 = mutate(child2, t)
 
+            # Replacement
             eliteList = getEliteList(fitness)
 
-            # Replacement
             inplace1 = not isElite(fitness, i1, eliteList)
             inplace2 = not isElite(fitness, i2, eliteList)
             if inplace1:
