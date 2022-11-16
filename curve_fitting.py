@@ -3,15 +3,15 @@
 
 import random
 
-ITERATIONS = 10000
-POPULATION_SIZE = 100
+ITERATIONS = 20000
+POPULATION_SIZE = 1000
 MUTATION_RATE = 0.1
 CROSSOVER_RATE = 0.7
-ELITISM_RATE = 0.1
+ELITISM_RATE = 0.01
 TOURNAMENT_SIZE = 5
 UPPER_BOUND = 10
 LOWER_BOUND = -10
-DEPENDENCY_FACTOR = 2
+DEPENDENCY_FACTOR = 5
 
 
 def initializePopulation(populationSize, d):
@@ -47,7 +47,7 @@ def selectParent(population, fitness):
 def crossover(parent1, parent2):
     # Crossover only if random number is less than crossover rate
     if random.random() > CROSSOVER_RATE:
-        return parent1, parent2
+        return parent1.copy(), parent2.copy()
 
     # 2-point crossover
     r1 = random.randint(0, len(parent1) - 1)
@@ -102,12 +102,12 @@ def randomNonElite(fitness, eliteList):
 
 def doWork(d, data):
     population = initializePopulation(POPULATION_SIZE, d)
+    
+    # Evaluate fitness
+    fitness = [calculateFitness(individual, data)
+                for individual in population]
 
     for t in range(ITERATIONS):
-        # Evaluate fitness
-        fitness = [calculateFitness(individual, data)
-                   for individual in population]
-
         # Number of families
         families = random.randint(0, POPULATION_SIZE // 2)
         for _ in range(families):
@@ -127,15 +127,19 @@ def doWork(d, data):
 
             inplace1 = not isElite(fitness, i1, eliteList)
             inplace2 = not isElite(fitness, i2, eliteList)
-            if inplace1:
-                population[i1] = child1
-            else:
-                population[randomNonElite(fitness, eliteList)] = child1
+            if not inplace1:
+                i1 = randomNonElite(fitness, eliteList)
+                
+            population[i1] = child1
+            fitness[i1] = calculateFitness(child1, data)
 
-            if inplace2:
-                population[i2] = child2
-            else:
-                population[randomNonElite(fitness, eliteList)] = child2
+            if not inplace2:
+                i2 = randomNonElite(fitness, eliteList)
+                
+            population[i2] = child2
+            fitness[i2] = calculateFitness(child2, data)
+
+        print("Iteration: {}, MSE: {}".format(t, 1 / fitness[eliteList[0]]))
 
     best_individual = population[fitness.index(max(fitness))]
     return best_individual, calculateMSE(best_individual, data)
